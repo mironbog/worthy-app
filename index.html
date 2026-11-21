@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Worthy</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F7FF;--card:#fff;--ink:#0F1B4D;--mute:#7A86A8;--blue:#2F6FED;--blue-s:#E6EEFF;--green:#22A96B;--green-s:#E3F7EC;--red:#E5484D;--red-s:#FDE8E9;--amber:#D98A00;--amber-s:#FFF1D6;--line:#E3E9F6}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;padding-top:env(safe-area-inset-top,0)}
+main{flex:1;overflow-y:auto;padding:16px 16px 24px}
+.screen{display:none}.screen.on{display:block}
+h1{font-size:26px;font-weight:900}h2{font-size:20px;font-weight:900}
+.mute{color:var(--mute);font-size:14px;font-weight:600}
+.card{background:var(--card);border-radius:20px;padding:16px;box-shadow:0 2px 12px rgba(30,60,140,.07)}
+.btn{display:block;width:100%;border:0;border-radius:16px;padding:15px;font:800 16px 'Nunito',sans-serif;background:var(--blue);color:#fff;cursor:pointer;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:none;color:var(--blue);font-size:14px;padding:12px}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.top b{font-size:22px;font-weight:900}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 14px}
+.cat{background:var(--card);border:0;border-radius:18px;padding:16px 8px;font:800 14px 'Nunito',sans-serif;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 2px 12px rgba(30,60,140,.07);cursor:pointer}
+.cat span{font-size:28px}
+.tip{display:flex;gap:12px;background:var(--blue-s);align-items:center;font-size:14px;font-weight:700}
+.tip span{font-size:26px}
+/* chat */
+.chat-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{border:0;background:var(--card);width:36px;height:36px;border-radius:12px;font-size:18px;color:var(--ink);cursor:pointer}
+#chat{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+.msg{max-width:84%;padding:12px 14px;border-radius:18px;font-size:15px;font-weight:700;line-height:1.35;animation:pop .2s ease}
+.msg.bot{background:var(--card);border-bottom-left-radius:6px;box-shadow:0 2px 10px rgba(30,60,140,.06)}
+.msg.me{background:var(--blue);color:#fff;align-self:flex-end;border-bottom-right-radius:6px}
+.dots{display:flex;gap:4px;padding:14px}.dots i{width:7px;height:7px;border-radius:50%;background:#B9C4E2;animation:b 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{transform:translateY(-4px)}}@keyframes pop{from{opacity:0;transform:translateY(6px)}}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.opt{border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:12px 14px;font:700 14px 'Nunito',sans-serif;color:var(--ink);text-align:left;cursor:pointer}
+.opt:active{background:var(--blue-s);border-color:var(--blue)}
+.inp{display:flex;gap:8px;margin-top:4px}
+.inp input{flex:1;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;font:700 15px 'Nunito',sans-serif;background:var(--card);color:var(--ink);outline:none}
+.inp input:focus{border-color:var(--blue)}
+.inp button{width:46px;border:0;border-radius:50%;background:var(--blue);color:#fff;font-size:18px;cursor:pointer}
+/* result */
+.res-top{text-align:center;border-radius:20px;padding:18px 14px;margin-bottom:12px}
+.res-top .robot{margin:0 auto 6px}
+.res-top h2{margin-bottom:2px}
+.ok{background:var(--green-s)}.warn{background:var(--amber-s)}.bad{background:var(--red-s)}
+.reasons{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.reasons div{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:700}
+.ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px}
+.ic.g{background:var(--green)}.ic.a{background:var(--amber)}.ic.r{background:var(--red)}
+.advice{background:var(--green-s);border-radius:16px;padding:14px;font-size:14px;font-weight:700;margin-bottom:14px}
+/* history */
+.tabs{display:flex;gap:6px;margin:12px 0;overflow-x:auto}
+.tab{border:0;border-radius:20px;padding:7px 14px;font:800 13px 'Nunito',sans-serif;background:var(--card);color:var(--mute);cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--blue);color:#fff}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row .e{font-size:24px;width:38px;text-align:center}
+.row .t{flex:1;font-weight:800;font-size:15px}
+.row small{display:block;color:var(--mute);font-weight:600;font-size:12px}
+.badge{border-radius:10px;padding:5px 10px;font-size:12px;font-weight:800}
+.badge.ok{color:var(--green)}.badge.warn{color:var(--amber)}.badge.bad{color:var(--red)}
+.empty{text-align:center;padding:30px 10px;color:var(--mute);font-weight:700}
+/* profile */
+.prof{text-align:center;margin-bottom:14px}.prof .robot{margin:0 auto 6px}
+.ring{--p:0;width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--blue) calc(var(--p)*1%),var(--blue-s) 0);display:grid;place-items:center;flex:none}
+.ring b{width:46px;height:46px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:13px;font-weight:900;color:var(--blue)}
+.goal{display:flex;gap:14px;align-items:center}
+.goal .info{flex:1;font-weight:800}
+.bar{height:6px;border-radius:4px;background:var(--blue-s);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue)}
+.form{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.form input{border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;font:700 14px 'Nunito',sans-serif;background:var(--card);color:var(--ink);outline:none}
+.quote{margin-top:12px;background:var(--blue-s);font-size:13px;font-weight:700}
+/* nav */
+nav{display:flex;background:var(--card);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0));box-shadow:0 -2px 14px rgba(30,60,140,.08)}
+nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font:800 11px 'Nunito',sans-serif;color:var(--mute);cursor:pointer}
+nav button span{font-size:22px;filter:grayscale(1);opacity:.7}
+nav button.on{color:var(--blue)}nav button.on span{filter:none;opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+<main>
+  <!-- 1 Главная -->
+  <section class="screen on" id="s-home">
+    <div class="top"><span class="robot" data-r></span><b>Worthy</b></div>
+    <h1 id="hello">Привет!</h1>
+    <p class="mute" style="margin:4px 0 16px">Готов разобраться, нужна ли тебе эта покупка?</p>
+    <button class="btn" onclick="startFlow()">Начать</button>
+    <h2 style="font-size:16px;margin:20px 0 0">Популярные категории</h2>
+    <div class="cats">
+      <button class="cat" onclick="startFlow('Одежда')"><span>👟</span>Одежда</button>
+      <button class="cat" onclick="startFlow('Техника')"><span>💻</span>Техника</button>
+      <button class="cat" onclick="startFlow('Для дома')"><span>🏠</span>Для дома</button>
+      <button class="cat" onclick="startFlow('Развлечения')"><span>🎮</span>Развлечения</button>
+    </div>
+    <div class="card tip"><span>💡</span><div>Помни: лучшая покупка — это та, от которой ты действительно будешь рад.</div></div>
+  </section>
+
+  <!-- 2 Вопросы -->
+  <section class="screen" id="s-chat">
+    <div class="chat-head"><button class="back" onclick="go('home')">‹</button><span class="robot" data-r></span><b style="font-size:18px">Worthy</b></div>
+    <div id="chat"></div>
+    <div id="answer"></div>
+  </section>
+
+  <!-- 3 Результат -->
+  <section class="screen" id="s-result"></section>
+
+  <!-- 4 История -->
+  <section class="screen" id="s-history">
+    <h1>История</h1>
+    <div class="tabs" id="tabs"></div>
+    <div class="card" id="hlist"></div>
+  </section>
+
+  <!-- 5 Профиль -->
+  <section class="screen" id="s-profile">
+    <div class="prof"><span class="robot" data-r></span><h2 id="pname">Гость</h2><div class="mute">Осознанный покупатель 👑</div></div>
+    <div class="card">
+      <div class="mute" style="font-weight:800">Твоя цель</div>
+      <div class="goal" style="margin-top:10px">
+        <div class="ring" id="ring"><b id="pct">0%</b></div>
+        <div class="info"><div id="gname">Цель не задана</div><div class="mute" id="gsum"></div><div class="bar"><i id="gbar" style="width:0"></i></div></div>
+      </div>
+      <div class="form">
+        <input id="g-name" placeholder="На что копишь? (например, ПК)">
+        <input id="g-target" type="number" inputmode="numeric" placeholder="Нужная сумма, ₽">
+        <input id="g-saved" type="number" inputmode="numeric" placeholder="Уже накоплено, ₽">
+        <button class="btn" onclick="saveGoal()">Сохранить цель</button>
+      </div>
+    </div>
+    <div class="card quote">«Лучше подождать и купить то, что действительно порадует, чем пожалеть об импульсивной покупке.»</div>
+  </section>
+</main>
+<nav>
+  <button data-n="home" class="on" onclick="go('home')"><span>🏠</span>Главная</button>
+  <button data-n="history" onclick="go('history')"><span>🕘</span>История</button>
+  <button data-n="profile" onclick="go('profile')"><span>👤</span>Профиль</button>
+</nav>
+</div>
+
+<script>
+const tg=window.Telegram&&Telegram.WebApp;
+if(tg){tg.ready();tg.expand();}
+const user=(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user)||{};
+const NAME=user.first_name||'Гость';
+const ROBOT=`<svg width="44" height="44" viewBox="0 0 44 44"><rect x="3" y="14" width="5" height="12" rx="2.5" fill="#2BB673"/><rect x="36" y="14" width="5" height="12" rx="2.5" fill="#2BB673"/><rect x="7" y="8" width="30" height="27" rx="12" fill="#0F1B4D"/><rect x="11" y="13" width="22" height="16" rx="8" fill="#16276B"/><circle cx="17" cy="20" r="2.4" fill="#7FB0FF"/><circle cx="27" cy="20" r="2.4" fill="#7FB0FF"/><path d="M18 25q4 3 8 0" stroke="#7FB0FF" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="22" y1="8" x2="22" y2="3" stroke="#0F1B4D" stroke-width="2"/><circle cx="22" cy="3" r="2" fill="#2F6FED"/></svg>`;
+document.querySelectorAll('[data-r]').forEach(e=>e.innerHTML=ROBOT);
+document.getElementById('hello').textContent='Привет, '+NAME+'!';
+document.getElementById('pname').textContent=NAME;
+
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const fmt=n=>Number(n).toLocaleString('ru-RU')+' ₽';
+
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+n));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.n===n));
+  if(n==='history')renderHistory();
+  if(n==='profile')renderProfile();
+  document.querySelector('main').scrollTop=0;
+}
+
+/* ---------- вопросы ---------- */
+const Q=[
+ {t:'Зачем тебе это нужно?',r:['Реальной потребности за покупкой не видно.','Польза есть, но это скорее желание, чем необходимость.','У покупки есть понятная и реальная польза.'],o:[['Решает реальную проблему',4],['Заметно улучшит повседневную жизнь',3],['Для хобби или удовольствия',2],['Хочу порадовать себя',1],['Просто захотелось',0]]},
+ {t:'Как давно ты этого хочешь?',r:['Желание появилось только что: похоже на импульс.','Желание ещё не проверено временем.','Желание держится давно и не проходит.'],o:[['Больше 3 месяцев',4],['От 1 до 3 месяцев',3],['2–4 недели',2],['Несколько дней',1],['Увидел(а) сегодня',0]]},
+ {t:'Есть ли у тебя что-то похожее?',r:['У тебя уже есть похожая вещь, и она подходит.','Замена нужна не срочно: старая вещь ещё служит.','Подходящей вещи у тебя сейчас нет.'],o:[['Нет ничего похожего',4],['Есть, но сломано',3],['Есть, но сильно устарело',2],['Есть, но хочу новее или лучше',1],['Есть несколько таких же',0]]},
+ {t:'Откуда возьмутся деньги?',hard:1,r:['Покупка выходит за рамки твоего бюджета.','Придётся урезать другие траты.','Деньги есть, бюджет не пострадает.'],o:[['Из накоплений, без ущерба',4],['Из свободных денег этого месяца',3],['Придётся урезать другие траты',2],['Придётся сильно экономить',1],['Нужен долг, кредит или рассрочка',0]]},
+ {t:'Что ты чувствуешь прямо сейчас?',soft:1,r:['Желание могло возникнуть из-за настроения.','Эмоции немного влияют на решение.','Решение принято спокойно, без спешки.'],o:[['Спокоен, всё обдумал(а)',4],['Скорее спокоен',3],['Хочу немного побаловать себя',2],['Скука, усталость или стресс',1],['Хочу поднять себе настроение',0]]},
+ {t:'Влияет ли скидка или срочность?',soft:1,r:['Скидка и срочность давят на решение.','Скидка отчасти подогревает желание.','Цена и сроки не давят на решение.'],o:[['Цена обычная, я не спешу',4],['Скидка есть, но купил(а) бы и так',3],['Скидка повлияла на желание',2],['Боюсь упустить акцию',1],['Куплю только из-за скидки',0]]},
+ {t:'Купил(а) бы по полной цене?',r:['По полной цене ты бы это не купил(а).','Ты сомневаешься, что это стоит полной цены.','Ты готов(а) заплатить полную цену.'],o:[['Да, без сомнений',4],['Да, но поискал(а) бы дешевле',3],['Скорее да',2],['Скорее нет',1],['Точно нет',0]]},
+ {t:'Как часто будешь этим пользоваться?',r:['Вероятно, вещь будет лежать без дела.','Пользоваться будешь нечасто.','Ты будешь пользоваться этим регулярно.'],o:[['Каждый день',4],['Несколько раз в неделю',3],['Раз в неделю или реже',2],['Пару раз в месяц',1],['Скорее всего, почти никогда',0]]},
+ {t:'Смог(ла) бы подождать 3 дня?',r:['Ждать тяжело: это признак импульса.','Ждать непросто, проверь себя ещё раз.','Ты спокойно можешь подождать.'],o:[['Без проблем, желание останется',4],['Да, смогу',3],['Тяжело, но смогу',2],['Очень хочется прямо сейчас',1],['Не могу ждать',0]]},
+ {t:'Сравнивал(а) варианты?',r:['Ты почти ничего не сравнивал(а).','Выбор сделан по небольшой информации.','Ты изучил(а) варианты и отзывы.'],o:[['Сравнил(а) несколько вариантов и отзывы',4],['Посмотрел(а) пару вариантов',3],['Только один вариант и обзор',2],['Видел(а) только рекламу',1],['Ничего не сравнивал(а)',0]]},
+ {t:'Влияют ли на тебя другие люди или тренды?',soft:1,r:['Решение сильно зависит от мнения и трендов.','Тренды частично влияют на твоё желание.','Это твоё собственное решение.'],o:[['Нет, это моё решение',4],['Вдохновили, но мне правда нужно',3],['Частично из-за тренда',2],['Многие купили, и я хочу',1],['Хочу произвести впечатление',0]]},
+ {t:'Как покупка связана с твоей целью накопить?',r:['Покупка сорвёт твои планы накоплений.','Покупка отодвигает твою цель.','Покупка не мешает твоим целям.'],o:[['Это и есть моя цель',4],['Никак не мешает целям',3],['Немного отодвинет цель',2],['Заметно отодвинет цель',1],['Полностью сорвёт планы',0]]},
+ {t:'Какую часть свободных денег это съест?',hard:1,r:['Покупка слишком большая для твоих свободных денег.','Это ощутимая часть твоих свободных денег.','Сумма небольшая относительно твоих денег.'],o:[['Меньше 5%',4],['5–15%',3],['15–30%',2],['30–60%',1],['Больше 60%',0]]},
+ {t:'Будешь ли рад(а) этому через полгода?',r:['Скорее всего, ты забудешь о покупке.','Нет уверенности, что покупка порадует надолго.','Ты уверен(а), что покупка порадует надолго.'],o:[['Уверен(а), что буду рад(а)',4],['Скорее да',3],['Не знаю',2],['Скорее нет',1],['Скорее всего забуду про неё',0]]},
+ {t:'Смог(ла) бы объяснить покупку другу?',r:['Ты бы не стал(а) рассказывать об этой покупке.','Объяснить покупку тебе было бы непросто.','Ты легко объяснишь, зачем тебе эта вещь.'],o:[['Легко, назову причины',4],['Да, но подумаю',3],['С трудом',2],['Пришлось бы оправдываться',1],['Не стал(а) бы рассказывать',0]]}
+];
+let st=null;
+
+function startFlow(cat){
+  st={cat:cat||'Другое',item:'',price:0,i:-1,score:0,reasons:[],hard:false,soft:false};
+  $('chat').innerHTML='';$('answer').innerHTML='';
+  go('chat');
+  bot('Что ты хочешь купить?'+(cat?` (категория: ${cat})`:''),()=>askText('Например, наушники',v=>{st.item=v;me(v);askPrice()}));
+}
+function bot(text,cb){
+  const d=document.createElement('div');d.className='msg bot dots';d.innerHTML='<i></i><i></i><i></i>';
+  $('chat').appendChild(d);scroll();
+  setTimeout(()=>{d.className='msg bot';d.textContent=text;scroll();cb&&cb()},450);
+}
+function me(t){const d=document.createElement('div');d.className='msg me';d.textContent=t;$('chat').appendChild(d);$('answer').innerHTML='';scroll()}
+function scroll(){const m=document.querySelector('main');setTimeout(()=>m.scrollTop=m.scrollHeight,30)}
+function askText(ph,fn,num){
+  $('answer').innerHTML=`<div class="inp"><input id="ti" placeholder="${ph}" ${num?'type="number" inputmode="numeric"':''}><button id="tb">➤</button></div>`;
+  const send=()=>{const v=$('ti').value.trim();if(v)fn(v)};
+  $('tb').onclick=send;$('ti').onkeydown=e=>{if(e.key==='Enter')send()};
+  $('ti').focus();scroll();
+}
+function askPrice(){bot('Сколько это стоит, ₽?',()=>askText('Например, 5000',v=>{st.price=+v||0;me(fmt(st.price));next()},true))}
+function next(){
+  st.i++;
+  if(st.i>=Q.length)return finish();
+  const q=Q[st.i];
+  bot(`Вопрос ${st.i+1} из ${Q.length}. ${q.t}`,()=>{
+    const idx=q.o.map((_,k)=>k).sort(()=>Math.random()-.5);
+    $('answer').innerHTML='<div class="opts">'+idx.map(k=>`<button class="opt" data-k="${k}">${q.o[k][0]}</button>`).join('')+'</div>';
+    $('answer').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const o=q.o[+b.dataset.k],v=o[1];me(o[0]);
+      st.score+=v;st.reasons.push({s:v,t:q.r[v<=1?0:v===2?1:2]});
+      if(q.hard&&v===0)st.hard=true;
+      if(q.soft&&v<=1)st.soft=true;
+      next();
+    });scroll();
+  });
+}
+
+/* ---------- результат ---------- */
+function finish(){
+  const max=Q.length*4,p=st.score/max;
+  let k,title,sub;
+  if(st.hard||p<.5){k='bad';title='В этой покупке ты не нуждаешься';sub='Сейчас это не лучший вариант, потому что:'}
+  else if(p<.75||st.soft){k='warn';title='Лучше подожди с покупкой';sub='Есть сомнения, поэтому:'}
+  else{k='ok';title='Эта покупка стоит своих денег';sub='Всё сходится, потому что:'}
+  const status={bad:'Не стоит',warn:'Отложено',ok:'Стоит'}[k];
+  const goal=store.get('goal',null);
+  let advice;
+  if(k==='ok')advice='Можно покупать. Сравни цены в двух-трёх магазинах и бери без спешки.';
+  else if(k==='warn')advice=`Отложи на 3 дня${st.price?` и не трать ${fmt(st.price)} сразу`:''}. Если желание останется, возвращайся и пройди вопросы заново.`;
+  else advice=`Лучше отложить${st.price?' '+fmt(st.price):' эти деньги'}${goal&&goal.name?` на цель «${goal.name}»`:' и вернуться к идее через пару месяцев'}. Возможно, всё это без спешки.`;
+  const icon={g:'✓',a:'!',r:'✕'};
+  const srt=[...st.reasons].sort((x,y)=>x.s-y.s);
+  const shown=(k==='ok'?[...srt.slice(-3).reverse(),...srt.filter(x=>x.s<=2).slice(0,1)]:[...srt.slice(0,3),srt[srt.length-1]]).filter((x,i,a)=>a.indexOf(x)===i);
+  const cl=v=>v<=1?'r':v===2?'a':'g';
+  const robot=ROBOT.replace('width="44" height="44"','width="64" height="64"');
+  $('s-result').innerHTML=`
+   <div class="res-top ${k}"><div class="robot">${robot}</div><h2>${title}</h2><div class="mute">${esc(st.item)}${st.price?' · '+fmt(st.price):''}</div><div class="mute" style="margin-top:4px">Оценка: ${st.score} из ${max}</div></div>
+   <div class="mute" style="font-weight:800">${sub}</div>
+   <div class="reasons card">${shown.map(r=>`<div><span class="ic ${cl(r.s)}">${icon[cl(r.s)]}</span><span>${r.t}</span></div>`).join('')}</div>
+   <div class="advice ${k==='ok'?'':'warn'}" style="${k==='ok'?'':'background:var(--amber-s)'}">🌱 ${advice}</div>
+   <button class="btn" onclick="saveResult('${status}')">Понятно</button>
+   <button class="btn ghost" onclick="startFlow('${st.cat}')">Посмотреть другие варианты</button>`;
+  go('result');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+}
+function saveResult(status){
+  const h=store.get('history',[]);
+  h.unshift({item:st.item,price:st.price,cat:st.cat,status,date:new Date().toISOString()});
+  store.set('history',h.slice(0,100));
+  if(tg&&tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+  go('history');
+}
+
+/* ---------- история ---------- */
+let filter='Все';
+const CATE={'Одежда':'👟','Техника':'💻','Для дома':'🏠','Развлечения':'🎮','Другое':'🛍️'};
+function renderHistory(){
+  $('tabs').innerHTML=['Все','Стоит','Отложено','Не стоит'].map(t=>`<button class="tab ${t===filter?'on':''}" onclick="filter='${t}';renderHistory()">${t}</button>`).join('');
+  const h=store.get('history',[]).filter(x=>filter==='Все'||x.status===filter);
+  const cls={'Стоит':'ok','Отложено':'warn','Не стоит':'bad'};
+  $('hlist').innerHTML=h.length?h.map(x=>{
+    const d=new Date(x.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
+    return `<div class="row"><div class="e">${CATE[x.cat]||'🛍️'}</div><div class="t">${esc(x.item)}<small>${d}${x.price?' · '+fmt(x.price):''}</small></div><span class="badge ${cls[x.status]} ${cls[x.status]}">${x.status}</span></div>`}).join('')
+   :'<div class="empty">Пока пусто. Пройди первую оценку, и она появится здесь.</div>';
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+/* ---------- профиль ---------- */
+function renderProfile(){
+  const g=store.get('goal',null);
+  if(g&&g.target){
+    const p=Math.min(100,Math.round(g.saved/g.target*100));
+    $('gname').textContent='Накопить на '+g.name;$('gsum').textContent=fmt(g.saved)+' из '+fmt(g.target);
+    $('ring').style.setProperty('--p',p);$('pct').textContent=p+'%';$('gbar').style.width=p+'%';
+    $('g-name').value=g.name;$('g-target').value=g.target;$('g-saved').value=g.saved;
+  }
+}
+function saveGoal(){
+  const name=$('g-name').value.trim(),target=+$('g-target').value,saved=+$('g-saved').value||0;
+  if(!name||!target)return;
+  store.set('goal',{name,target,saved});renderProfile();
+  if(tg&&tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
+}
+</script>
+</body>
+</html>
