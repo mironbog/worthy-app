@@ -134,6 +134,7 @@ nav button.on{color:var(--blue)}nav button.on span{filter:none;opacity:1}
         <button class="btn" onclick="saveGoal()">Сохранить цель</button>
       </div>
     </div>
+    <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center"><span class="mute" style="font-weight:800">Сэкономлено на отказах</span><b id="saved-total">0 ₽</b></div>
     <div class="card quote">«Лучше подождать и купить то, что действительно порадует, чем пожалеть об импульсивной покупке.»</div>
   </section>
 </main>
@@ -235,7 +236,7 @@ function finish(){
   let advice;
   if(k==='ok')advice='Можно покупать. Сравни цены в двух-трёх магазинах и бери без спешки.';
   else if(k==='warn')advice=`Отложи на 3 дня${st.price?` и не трать ${fmt(st.price)} сразу`:''}. Если желание останется, возвращайся и пройди вопросы заново.`;
-  else advice=`Лучше отложить${st.price?' '+fmt(st.price):' эти деньги'}${goal&&goal.name?` на цель «${goal.name}»`:' и вернуться к идее через пару месяцев'}. Возможно, всё это без спешки.`;
+  else advice=`Лучше отложить${st.price?' '+fmt(st.price):' эти деньги'}${goal&&goal.name?` на цель «${goal.name}»`:' и вернуться к идее через пару месяцев'}.${goal&&goal.target&&st.price?' После «Понятно» эта сумма добавится в твою цель.':''}`;
   const icon={g:'✓',a:'!',r:'✕'};
   const srt=[...st.reasons].sort((x,y)=>x.s-y.s);
   const shown=(k==='ok'?[...srt.slice(-3).reverse(),...srt.filter(x=>x.s<=2).slice(0,1)]:[...srt.slice(0,3),srt[srt.length-1]]).filter((x,i,a)=>a.indexOf(x)===i);
@@ -253,7 +254,9 @@ function finish(){
 }
 function saveResult(status){
   const h=store.get('history',[]);
-  h.unshift({item:st.item,price:st.price,cat:st.cat,status,date:new Date().toISOString()});
+  let saved=false;
+  if(status==='Не стоит'&&st.price){const g=store.get('goal',null);if(g&&g.target){g.saved=Math.min(g.target,(+g.saved||0)+st.price);store.set('goal',g);saved=true}}
+  h.unshift({item:st.item,price:st.price,cat:st.cat,status,saved,date:new Date().toISOString()});
   store.set('history',h.slice(0,100));
   if(tg&&tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');
   go('history');
@@ -268,7 +271,7 @@ function renderHistory(){
   const cls={'Стоит':'ok','Отложено':'warn','Не стоит':'bad'};
   $('hlist').innerHTML=h.length?h.map(x=>{
     const d=new Date(x.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
-    return `<div class="row"><div class="e">${CATE[x.cat]||'🛍️'}</div><div class="t">${esc(x.item)}<small>${d}${x.price?' · '+fmt(x.price):''}</small></div><span class="badge ${cls[x.status]} ${cls[x.status]}">${x.status}</span></div>`}).join('')
+    return `<div class="row"><div class="e">${CATE[x.cat]||'🛍️'}</div><div class="t">${esc(x.item)}<small>${d}${x.price?' · '+fmt(x.price):''}${x.saved?' · в копилку':''}</small></div><span class="badge ${cls[x.status]} ${cls[x.status]}">${x.status}</span></div>`}).join('')
    :'<div class="empty">Пока пусто. Пройди первую оценку, и она появится здесь.</div>';
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
@@ -276,6 +279,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','
 /* ---------- профиль ---------- */
 function renderProfile(){
   const g=store.get('goal',null);
+  $('saved-total').textContent=fmt(store.get('history',[]).filter(x=>x.status==='Не стоит').reduce((a,x)=>a+(+x.price||0),0));
   if(g&&g.target){
     const p=Math.min(100,Math.round(g.saved/g.target*100));
     $('gname').textContent='Накопить на '+g.name;$('gsum').textContent=fmt(g.saved)+' из '+fmt(g.target);
